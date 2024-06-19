@@ -39,14 +39,22 @@ public class ListNode<T> : NodeBase<AtkResNode>, IList<T> where T : NodeBase {
         set => background.IsVisible = value;
     }
     
-    public ListNode() : base(NodeType.Res) {
-        background = new ImageNode {
+    public ListNode(Action<string> logger) : base(NodeType.Res, logger) {
+        background = new ImageNode(logger) {
             NodeID = 101_000,
             Size = new Vector2(600.0f, 32.0f),
             IsVisible = true,
         };
         
         background.AttachNode(this, NodePosition.AsFirstChild);
+    }
+
+    public override void XDetach() {
+            foreach (var node in nodeList) {
+                node.XDetach();
+            }
+
+            base.XDetach();
     }
 
     protected override void Dispose(bool isDisposing) {

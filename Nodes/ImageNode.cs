@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using Dalamud.Interface.Internal;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using KamiToolKit.Classes;
@@ -7,7 +8,7 @@ namespace KamiToolKit.Nodes;
 
 public unsafe class ImageNode : NodeBase<AtkImageNode> {
 
-    public ImageNode() : base(NodeType.Image) {
+    public ImageNode(Action<string> logger) : base(NodeType.Image, logger) {
         var asset = NativeMemoryHelper.UiAlloc<AtkUldAsset>();
         asset->Id = 1;
         asset->AtkTexture.Ctor();
@@ -32,9 +33,12 @@ public unsafe class ImageNode : NodeBase<AtkImageNode> {
     }
     
     protected override void Dispose(bool disposing) {
+        log.Invoke($"0x{(nint)InternalResNode:X} {InternalResNode->Type} ImageNode:Dispose({disposing})");
         if (disposing) {
+            log.Invoke($"  InternalNode->UnloadTexture()");
             InternalNode->UnloadTexture();
-            
+
+            log.Invoke($"  NativeMemoryHelper.UiFree(...)");
             NativeMemoryHelper.UiFree(InternalNode->PartsList->Parts->UldAsset);
             NativeMemoryHelper.UiFree(InternalNode->PartsList->Parts);
             NativeMemoryHelper.UiFree(InternalNode->PartsList);

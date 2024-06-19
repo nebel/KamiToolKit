@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 using Dalamud.Utility.Numerics;
@@ -7,7 +8,7 @@ using KamiToolKit.Extensions;
 
 namespace KamiToolKit.Nodes;
 
-public unsafe class TextNode() : NodeBase<AtkTextNode>(NodeType.Text) {
+public unsafe class TextNode(Action<string> logger) : NodeBase<AtkTextNode>(NodeType.Text, logger) {
     public Vector4 TextColor {
         get => InternalNode->TextColor.ToVector4();
         set => InternalNode->TextColor = value.ToByteColor();

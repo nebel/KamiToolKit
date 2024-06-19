@@ -1,11 +1,12 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using KamiToolKit.Classes;
 
 namespace KamiToolKit.Nodes;
 
 public unsafe class NineGridNode : NodeBase<AtkNineGridNode> {
-    public NineGridNode() : base(NodeType.NineGrid) {
+    public NineGridNode(Action<string> logger) : base(NodeType.NineGrid, logger) {
         var asset = NativeMemoryHelper.UiAlloc<AtkUldAsset>();
         asset->Id = 1;
         asset->AtkTexture.Ctor();

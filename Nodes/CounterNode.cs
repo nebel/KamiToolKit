@@ -1,10 +1,11 @@
-﻿using FFXIVClientStructs.FFXIV.Component.GUI;
+﻿using System;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using KamiToolKit.Classes;
 
 namespace KamiToolKit.Nodes;
 
 public unsafe class CounterNode : NodeBase<AtkCounterNode> {
-    public CounterNode() : base(NodeType.Counter) {
+    public CounterNode(Action<string> logger) : base(NodeType.Counter, logger) {
         var asset = NativeMemoryHelper.UiAlloc<AtkUldAsset>();
         asset->Id = 1;
         asset->AtkTexture.Ctor();

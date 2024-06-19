@@ -10,6 +10,7 @@ public abstract unsafe partial class NodeBase : IDisposable {
     protected static readonly List<IDisposable> CreatedNodes = [];
 
     private bool isDisposed;
+    protected Action<string> log;
 
     internal abstract AtkResNode* InternalResNode { get; }
 
@@ -21,15 +22,30 @@ public abstract unsafe partial class NodeBase : IDisposable {
 
     ~NodeBase() => Dispose(false);
 
+    public virtual void XDetach() {
+        log.Invoke($"0x{(nint)InternalResNode:X} {InternalResNode->Type} XDetach()");
+        log.Invoke("  RemoveTooltipEvents()");
+        RemoveTooltipEvents();
+        log.Invoke("  RemoveOnClickEvents()");
+        RemoveOnClickEvents();
+        log.Invoke("  DetachNode()");
+        DetachNode();
+    }
+
     protected virtual void Dispose(bool disposing) {
+        log.Invoke($"0x{(nint)InternalResNode:X} {InternalResNode->Type} NodeBase:Dispose({disposing})");
         if (disposing) {
-            DetachNode();
-            RemoveTooltipEvents();
-            RemoveOnClickEvents();
+            // log.Invoke("  RemoveTooltipEvents()");
+            // RemoveTooltipEvents();
+            // log.Invoke("  RemoveOnClickEvents()");
+            // RemoveOnClickEvents();
+            // log.Invoke("  DetachNode()");
+            // DetachNode();
         }
     }
 
     public void Dispose() {
+        log.Invoke($"0x{(nint)InternalResNode:X} {InternalResNode->Type} NodeBase:Dispose [isDisposed={isDisposed}]");
         if (!isDisposed) {
             Dispose(true);
             GC.SuppressFinalize(this);
@@ -44,7 +60,9 @@ public abstract unsafe class NodeBase<T> : NodeBase where T : unmanaged, ICreata
 
     internal override sealed AtkResNode* InternalResNode => (AtkResNode*) InternalNode;
 
-    protected NodeBase(NodeType nodeType) {
+    protected NodeBase(NodeType nodeType, Action<string> log)
+    {
+        this.log = log;
         InternalNode = NativeMemoryHelper.Create<T>();
         InternalResNode->Type = nodeType;
 
@@ -56,10 +74,13 @@ public abstract unsafe class NodeBase<T> : NodeBase where T : unmanaged, ICreata
     }
     
     protected override void Dispose(bool disposing) {
+        log.Invoke($"0x{(nint)InternalResNode:X} {InternalResNode->Type} NodeBase<T>:Dispose({disposing})");
         if (disposing) {
             base.Dispose(disposing);
-            
+
+            log.Invoke("  InternalResNode->Destroy(false)");
             InternalResNode->Destroy(false);
+            log.Invoke("  NativeMemoryHelper.UiFree(InternalNode)");
             NativeMemoryHelper.UiFree(InternalNode);
         
             CreatedNodes.Remove(this);

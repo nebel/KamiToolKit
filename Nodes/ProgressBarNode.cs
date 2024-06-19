@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Numerics;
 using Dalamud.Interface;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -13,12 +14,12 @@ public unsafe class ProgressBarNode : NodeBase<AtkResNode> {
     
     private Vector2 ActualSize { get; set; }
 
-    public ProgressBarNode(uint baseId) : base(NodeType.Res) {
+    public ProgressBarNode(uint baseId, Action<string> logger) : base(NodeType.Res, logger) {
         NodeID = baseId;
         InternalNode->SetWidth((ushort)160.0f);
         InternalNode->SetHeight((ushort)20.0f);
         
-        backgroundImageNode = new NineGridNode {
+        backgroundImageNode = new NineGridNode(logger) {
             NodeID = 100 + baseId,
             Size = new Vector2(160.0f, 20.0f),
             TextureHeight = 20,
@@ -33,7 +34,7 @@ public unsafe class ProgressBarNode : NodeBase<AtkResNode> {
         backgroundImageNode.LoadTexture("ui/uld/Parameter_Gauge_hr1.tex");
         backgroundImageNode.AttachNode(this, NodePosition.AsLastChild);
 
-        progressNode = new NineGridNode {
+        progressNode = new NineGridNode(logger) {
             NodeID = 200 + baseId,
             Size = new Vector2(160.0f, 20.0f),
             TextureHeight = 20,
@@ -50,7 +51,7 @@ public unsafe class ProgressBarNode : NodeBase<AtkResNode> {
         progressNode.LoadTexture("ui/uld/Parameter_Gauge_hr1.tex");
         progressNode.AttachNode(this, NodePosition.AsLastChild);
 
-        borderImageNode = new NineGridNode {
+        borderImageNode = new NineGridNode(logger) {
             NodeID = 300 + baseId,
             Size = new Vector2(160.0f, 20.0f),
             TextureHeight = 20,

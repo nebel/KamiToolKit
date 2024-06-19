@@ -1,10 +1,11 @@
-﻿using FFXIVClientStructs.FFXIV.Common.Math;
+﻿using System;
+using FFXIVClientStructs.FFXIV.Common.Math;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace KamiToolKit.Nodes;
 
 // Untested, this node might not work at all.
-public unsafe class CollisionNode() : NodeBase<AtkCollisionNode>(NodeType.Collision) {
+public unsafe class CollisionNode(Action<string> logger) : NodeBase<AtkCollisionNode>(NodeType.Collision, logger) {
     public CollisionType CollisionType {
         get => (CollisionType)InternalNode->CollisionType;
         set => InternalNode->CollisionType = (ushort) value;
