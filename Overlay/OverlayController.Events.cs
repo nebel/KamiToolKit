@@ -7,9 +7,10 @@ using KamiToolKit.Classes;
 
 namespace KamiToolKit.Overlay;
 
-public unsafe partial class OverlayController {
+public abstract unsafe partial class OverlayController {
 
     private void AddOverlays() {
+        Log.Error($"{GetType()} AddOverlays");
         foreach (var overlayLayer in Enum.GetValues<OverlayLayer>()) {
             var addonName = overlayLayer.GetDescription();
 
@@ -22,14 +23,28 @@ public unsafe partial class OverlayController {
                 overlayAddons.TryAdd(overlayLayer, addon);
             }
             else {
-                CreateOverlayAddon(overlayLayer).Open();
+                var overlayAddon = CreateOverlayAddon(overlayLayer);
+                overlayAddon.Open();
+                // OnOverlayAddonSetupFake(overlayAddon); // SUPER HACK
             }
         }
 
-        overlaysActive = true;
+        OverlaysActive = true;
+
+        OnOverlaysCreated();
+    }
+
+    private void OnOverlayAddonSetupFake(OverlayAddon overlayAddon) {
+        Log.Error($"!!2 {GetType()}OnOverlayAddonSetup {overlayAddon.InternalName}");
+        var addon = overlayAddon.InternalAddon;
+        var overlayLayer = addon->DepthLayer.GetOverlayLayer();
+
+        overlayAddons.TryAdd(overlayLayer, addon);
+        AttachNodes(overlayLayer);
     }
 
     private void RemoveOverlays() {
+        Log.Error($"{GetType()} RemoveOverlays");
         DalamudInterface.Instance.AddonLifecycle.UnregisterListener(OnOverlayAddonFinalize, OnOverlayAddonSetup, OnOverlayAddonUpdate);
 
         foreach (var overlayLayer in Enum.GetValues<OverlayLayer>()) {
@@ -41,9 +56,11 @@ public unsafe partial class OverlayController {
         }
 
         overlayAddons.Clear();
-        overlaysActive = false;
+        OverlaysActive = false;
+
+        OnOverlaysRemoved();
     }
-    
+
     private static OverlayAddon CreateOverlayAddon(OverlayLayer layer) => new() {
         Title = layer.GetDescription(),
         InternalName = layer.GetDescription(),
@@ -52,6 +69,7 @@ public unsafe partial class OverlayController {
     };
 
     private void OnOverlayAddonSetup(AddonEvent type, AddonArgs args) {
+        Log.Error($"!!! {GetType()}OnOverlayAddonSetup {args.Addon.Name}");
         var addon = (AtkUnitBase*)args.Addon.Address;
         var overlayLayer = addon->DepthLayer.GetOverlayLayer();
 
@@ -71,6 +89,7 @@ public unsafe partial class OverlayController {
     }
 
     private void OnOverlayAddonFinalize(AddonEvent type, AddonArgs args) {
+        Log.Error($"!!! {GetType()} OnOverlayAddonFinalize {args.Addon.Name}");
         var addon = (AtkUnitBase*)args.Addon.Address;
         var overlayLayer = addon->DepthLayer.GetOverlayLayer();
         
@@ -79,6 +98,7 @@ public unsafe partial class OverlayController {
     }
 
     private void AttachNodes(OverlayLayer layer) {
+        Log.Error($"{GetType()} AttachNodes {layer}");
         if (!overlayAddons.TryGetValue(layer, out var addon)) return;
         if (!overlayNodes.TryGetValue(layer, out var list)) return;
 
@@ -89,10 +109,15 @@ public unsafe partial class OverlayController {
     }
 
     private void DetachNodes(OverlayLayer layer) {
+        Log.Error($"{GetType()} DetachNodes {layer}");
         if (!overlayNodes.TryGetValue(layer, out var list)) return;
 
         foreach (var node in list) {
             node.DetachNode();
         }
     }
+
+    protected abstract void OnOverlaysCreated();
+
+    protected abstract void OnOverlaysRemoved();
 }

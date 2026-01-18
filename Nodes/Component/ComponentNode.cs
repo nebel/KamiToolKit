@@ -58,6 +58,7 @@ public abstract unsafe class ComponentNode<T, TU> : ComponentNode where T : unma
     }
 
     protected override void Dispose(bool disposing, bool isNativeDestructor) {
+        Log.Warning($"(ComponentNode) Disposing {GetType().Name} (disposing={disposing}, isNativeDestructor={isNativeDestructor})");
         if (disposing) {
             if (!isNativeDestructor) {
                 NativeMemoryHelper.UiFree(Data);

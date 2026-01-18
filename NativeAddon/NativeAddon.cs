@@ -15,7 +15,7 @@ public abstract unsafe partial class NativeAddon {
 
     private GCHandle? disposeHandle;
 
-    internal AtkUnitBase* InternalAddon;
+    public AtkUnitBase* InternalAddon;
 
     public ResNode RootNode = null!;
 

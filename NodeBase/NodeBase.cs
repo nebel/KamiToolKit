@@ -25,6 +25,7 @@ public abstract unsafe partial class NodeBase : IDisposable {
     private AtkResNode.AtkResNodeVirtualTable* virtualTable;
 
     public void Dispose() {
+        Log.Warning($"Disposing node {GetType()} 1");
         if (MainThreadSafety.TryAssertMainThread()) return;
 
         if (isDisposed) return;
@@ -40,7 +41,7 @@ public abstract unsafe partial class NodeBase : IDisposable {
         }
         ChildNodes.Clear();
 
-        Log.Verbose($"Disposing node {GetType()}");
+        Log.Warning($"Disposing node {GetType()} 2");
 
         UnregisterTooltipEvents();
         
@@ -78,7 +79,10 @@ public abstract unsafe partial class NodeBase : IDisposable {
         }
     }
 
-    ~NodeBase() => Dispose(false, false);
+    ~NodeBase() {
+        Log.Warning($"Finalizing {GetType()}");
+        Dispose(false, false);
+    }
 
     /// <summary>
     /// Dispose associated resources. If a resource modifies native state directly guard it with isNativeDestructor
@@ -93,7 +97,7 @@ public abstract unsafe partial class NodeBase : IDisposable {
     /// resources that exist in managed spaces, as the game has already cleaned up everything else.
     /// </param>
     protected virtual void Dispose(bool disposing, bool isNativeDestructor) {
-        
+        Log.Warning($"(NodeBase) Disposing {GetType().Name} (disposing={disposing}, isNativeDestructor={isNativeDestructor})");
         // Dispose of managed resources that must be disposed regardless of how dispose is invoked
         DisposeEvents();
         DisableEditMode(NodeEditMode.Move | NodeEditMode.Resize);

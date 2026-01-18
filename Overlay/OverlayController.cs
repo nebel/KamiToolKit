@@ -14,39 +14,45 @@ public unsafe partial class OverlayController : IDisposable {
     private readonly Dictionary<OverlayLayer, List<OverlayNode>> overlayNodes = [];
     private readonly Dictionary<OverlayLayer, Pointer<AtkUnitBase>> overlayAddons = [];
 
-    private bool overlaysActive;
-    
+    public bool OverlaysActive;
+
     public OverlayController() {
         DalamudInterface.Instance.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "NamePlate", (_,_) => AddOverlays());
         DalamudInterface.Instance.AddonLifecycle.RegisterListener(AddonEvent.PreFinalize, "NamePlate",  (_,_) => RemoveOverlays());
-        
+
         var addon = RaptureAtkUnitManager.Instance()->GetAddonByName("NamePlate");
         if (addon is not null) {
             AddOverlays();
         }
     }
 
-    public void AddNode(OverlayNode node) => DalamudInterface.Instance.Framework.RunOnFrameworkThread(() => {         
+    public void AddNode(OverlayNode node) => DalamudInterface.Instance.Framework.RunOnFrameworkThread(() => {
+        Log.Error($">> Adding Overlay Node: {node.OverlayLayer} 1");
         overlayNodes.TryAdd(node.OverlayLayer, []);
 
         if (!overlayNodes[node.OverlayLayer].Contains(node)) {
+            Log.Warning($">> Adding Overlay Node: {node.OverlayLayer} 2");
             overlayNodes[node.OverlayLayer].Add(node);
 
-            if (overlaysActive && overlayAddons.TryGetValue(node.OverlayLayer, out var addon)) {
+            var c1 = OverlaysActive;
+            var c2 = overlayAddons.TryGetValue(node.OverlayLayer, out var addon);
+            Log.Warning($">> Adding Overlay Node: {node.OverlayLayer} 2 ({c1} && {c2})");
+            if (c1 && c2) {
+                Log.Warning($">> Adding Overlay Node: {node.OverlayLayer} 3");
                 node.NodeId = (uint)addon.Value->UldManager.NodeListCount + 1;
                 node.AttachNode(addon);
             }
         }
     });
 
-    public void CreateNode(Func<OverlayNode> creationFunction) => DalamudInterface.Instance.Framework.RunOnFrameworkThread(() => {         
+    public void CreateNode(Func<OverlayNode> creationFunction) => DalamudInterface.Instance.Framework.RunOnFrameworkThread(() => {
         var newNode = creationFunction();
         AddNode(newNode);
     });
 
     public void RemoveNode(OverlayNode node) => DalamudInterface.Instance.Framework.RunOnFrameworkThread(() => {
         if (overlayNodes.TryGetValue(node.OverlayLayer, out var list)) {
-            if (overlaysActive && list.Remove(node)) {
+            if (OverlaysActive && list.Remove(node)) {
                 node.Dispose();
             }
         }
@@ -57,9 +63,11 @@ public unsafe partial class OverlayController : IDisposable {
             RemoveNode(node);
         }
     });
-    
+
     public void Dispose() {
-        overlaysActive = false;
+        Log.Error($"{GetType()} Dispose");
+
+        OverlaysActive = false;
 
         DalamudInterface.Instance.AddonLifecycle.UnregisterListener(AddonEvent.PostSetup, "NamePlate");
         DalamudInterface.Instance.AddonLifecycle.UnregisterListener(AddonEvent.PreFinalize, "NamePlate");
